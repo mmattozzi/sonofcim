@@ -1,0 +1,13 @@
+I would have used maven but two of the requirements Pircbot and Mallet didn't
+seem to be in any maven repos. As such, I've included a shell script that
+will download most of the common jars into the lib directory:
+
+./get_dependencies.sh 
+
+Pircbot 1.4.6 can be downloaded from:
+http://www.jibble.org/pircbot.php
+
+Mallet 2.0-RC3 can be downloaded from:
+http://mallet.cs.umass.edu/download.php
+
+Use JDK 1.6.

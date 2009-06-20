@@ -1,0 +1,13 @@
+# IRC Options
+sonofcim.channel=milhouse
+sonofcim.nick=sonofcim
+sonofcim.server=irc.freenode.net
+
+# Database Options
+sonofcim.db.url=jdbc:mysql://localhost/irc
+sonofcim.db.user=user
+sonofcim.db.password=pass
+
+# Yahoo Answers
+sonofcim.yahoo.apikey=
+sonofcim.yahoo.boss.apikey=
