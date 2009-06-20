@@ -14,7 +14,7 @@ public class BotBot implements Runnable {
 	protected String name;
 	protected String channel;
 	protected IrcBot ircBot;
-	protected String server = "irc.freenode.net";
+	protected String server;
 	
 	public static void main(String[] args) throws NickAlreadyInUseException, IOException, IrcException {
 		
@@ -39,6 +39,7 @@ public class BotBot implements Runnable {
 		}
 		this.name = properties.getProperty("sonofcim.nick");
 		this.channel = properties.getProperty("sonofcim.channel");
+		this.server = properties.getProperty("sonofcim.server");
 		this.ircBot = new IrcBot(properties);
 		this.ircBot.setVerbose(true);
 	}
