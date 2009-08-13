@@ -11,3 +11,7 @@ sonofcim.db.password=pass
 # Yahoo Answers
 sonofcim.yahoo.apikey=
 sonofcim.yahoo.boss.apikey=
+
+# Delicious
+sonofcim.delicious.user=
+sonofcim.delicious.password=

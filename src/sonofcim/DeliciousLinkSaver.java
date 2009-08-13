@@ -48,6 +48,7 @@ public class DeliciousLinkSaver {
 		public LinkSaverThread(String link, String sender) {
 			this.link = link;
 			this.sender = sender;
+			this.sender = this.sender.replaceAll("_", "");
 		}
 		
 		public void run() {

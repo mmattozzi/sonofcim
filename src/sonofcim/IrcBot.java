@@ -21,6 +21,9 @@ public class IrcBot extends PircBot {
 	protected SimpleJdbcTemplate simpleJdbcTemplate;
 	
 	protected Pattern quoteRequest = Pattern.compile("!q (.*)");
+	protected Pattern linkPattern = Pattern.compile("(https?://\\S*)");
+	
+	protected DeliciousLinkSaver deliciousLinkSaver = null;
 	
 	public IrcBot(Properties props) {
 		this.setName(props.getProperty("sonofcim.nick"));
@@ -39,6 +42,11 @@ public class IrcBot extends PircBot {
 		moraleScale = new MoraleScale(jdbcTemplate);
 		
 		moraleScale.train(null);
+		
+		String deliciousUser = props.getProperty("sonofcim.delicious.user");
+		String deliciousPass = props.getProperty("sonofcim.delicious.password");
+		deliciousLinkSaver = new DeliciousLinkSaver(deliciousUser, deliciousPass);
+		
 	}
 	
 	@Override
@@ -54,6 +62,12 @@ public class IrcBot extends PircBot {
             String login, String hostname, String message) {
 		
 		if (! sender.equals(this.getName())) {
+			
+			Matcher linkMatcher = linkPattern.matcher(message);
+			if (linkMatcher.find()) {
+				deliciousLinkSaver.saveLink(linkMatcher.group(1), sender);
+			}
+			
 			boolean directlyAddressed = false;
 			if (message.contains(this.getName())) {
 				directlyAddressed = true;
