@@ -81,7 +81,7 @@ public class IrcBot extends PircBot {
 				}
 				String messageFiltered = message;
 				if (directlyAddressed) messageFiltered = messageFiltered.replace(this.getName(), "");
-				String answer = yahooAnswerer.getAnswer(messageFiltered, directlyAddressed);
+				String answer = yahooAnswerer.getAnswer(messageFiltered, directlyAddressed, sender);
 				if (answer != null) {
 					answer = answer.replaceAll("\n", " ");
 					sendMessage(channel, answer);

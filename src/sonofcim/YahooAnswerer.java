@@ -5,12 +5,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -32,6 +37,8 @@ public class YahooAnswerer {
 	protected XPathExpression xpathExpression = null;
 	protected HashSet<String> stopwords = new HashSet<String>();
 
+	protected List<String> negativeWords = new ArrayList<String>();
+	
 	Random r = new Random();
 	
 	protected String[] cannedResponses = new String[]{ "my brain hurts", "I think I need to lie down", "the dude abides", "hexen thx", "pong anyone?" };
@@ -49,26 +56,19 @@ public class YahooAnswerer {
 			e.printStackTrace();
 		}
 		
-		loadStopWords(stopwords, new File(ClassLoader.getSystemResource("stopwords.txt").getFile()));
-	}
-	
-	protected void loadStopWords(HashSet<String> stopwordSet, File file) {
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(file));
-			String line = reader.readLine();
-			while (line != null) {
-				stopwordSet.add(line);
-				line = reader.readLine();
-			}
-			System.out.println("Added " + stopwordSet.size() + " words to stopwords");
-		} catch (FileNotFoundException e) {
+			MoraleScale.loadWords(stopwords, this.getClass().getResource("/stopwords.txt").openStream());
+		} catch (IOException e) {
 			e.printStackTrace();
+		}
+		try {
+			MoraleScale.loadWords(negativeWords, this.getClass().getResource("/negative_words.txt").openStream());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-
-	public String getAnswer(String question, boolean forceAnswer) {
+	
+	public String getAnswer(String question, boolean forceAnswer, String sender) {
 		try {
 			question = question.replaceAll("(,|')", "");
 			String answer = queryAnswersAPI(question);
@@ -78,7 +78,7 @@ public class YahooAnswerer {
 				answer = queryAnswersAPI(getKeywords(question, 2));
 			}
 			
-			if (answer == null && forceAnswer) answer = "I don't know";
+			if (answer == null && forceAnswer) answer = "That's " + negativeWords.get(r.nextInt(negativeWords.size())) + ", " + sender;
 			return answer;
 		} catch (Exception e) {
 			e.printStackTrace();

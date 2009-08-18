@@ -5,14 +5,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 
 import org.joda.time.DateTime;
@@ -68,8 +70,16 @@ public class MoraleScale {
 	Classifier classifier;
 	
 	public MoraleScale(JdbcTemplate jdbcTemplate) {
-		loadWords(positiveWords, new File(ClassLoader.getSystemResource("positive_words.txt").getFile()));
-		loadWords(negativeWords, new File(ClassLoader.getSystemResource("negative_words.txt").getFile()));
+		try {
+			loadWords(positiveWords, this.getClass().getResource("/positive_words.txt").openStream());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		try {
+			loadWords(negativeWords, this.getClass().getResource("/negative_words.txt").openStream());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		
 		this.jdbcTemplate = jdbcTemplate;
 		
@@ -91,9 +101,9 @@ public class MoraleScale {
         trainingMethods.put("naive-bayes", NaiveBayesTrainer.class);
 	}
 
-	protected void loadWords(HashSet<String> wordSet, File file) {
+	public static void loadWords(Collection<String> wordSet, InputStream inputStream) {
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(file));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 			String line = reader.readLine();
 			while (line != null) {
 				wordSet.add(line.toLowerCase());
