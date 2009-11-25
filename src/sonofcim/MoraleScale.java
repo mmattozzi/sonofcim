@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.joda.time.DateTime;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -70,13 +72,19 @@ public class MoraleScale {
 	Classifier classifier;
 	
 	public MoraleScale(JdbcTemplate jdbcTemplate) {
-		try {
-			loadWords(positiveWords, this.getClass().getResource("/positive_words.txt").openStream());
+        HttpClient httpClient = new HttpClient();
+
+        try {
+            GetMethod get = new GetMethod("http://cloud.github.com/downloads/mmattozzi/sonofcim/positive_words.txt");
+            httpClient.executeMethod(get);
+			loadWords(positiveWords, get.getResponseBodyAsStream());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		try {
-			loadWords(negativeWords, this.getClass().getResource("/negative_words.txt").openStream());
+            GetMethod get = new GetMethod("http://cloud.github.com/downloads/mmattozzi/sonofcim/negative_words.txt");
+            httpClient.executeMethod(get);
+			loadWords(negativeWords, get.getResponseBodyAsStream());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

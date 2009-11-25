@@ -26,6 +26,10 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.simple.SimpleJdbcTemplate;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -36,6 +40,7 @@ public class YahooAnswerer {
 	protected String resourcePath = "http://answers.yahooapis.com/AnswersService/V1/questionSearch";
 	protected XPathExpression xpathExpression = null;
 	protected HashSet<String> stopwords = new HashSet<String>();
+    protected SimpleJdbcTemplate jdbcTemplate;
 
 	protected List<String> negativeWords = new ArrayList<String>();
 	
@@ -43,8 +48,9 @@ public class YahooAnswerer {
 	
 	protected String[] cannedResponses = new String[]{ "my brain hurts", "I think I need to lie down", "the dude abides", "hexen thx", "pong anyone?" };
 	
-	public YahooAnswerer(String yahooApiKey) {
+	public YahooAnswerer(String yahooApiKey, SimpleJdbcTemplate jdbcTemplate) {
 		this.yahooId = yahooApiKey;
+        this.jdbcTemplate = jdbcTemplate;
 		XPathFactory factory = XPathFactory.newInstance();
 		XPath xpath = factory.newXPath();
 		
@@ -55,14 +61,20 @@ public class YahooAnswerer {
 		} catch (XPathExpressionException e) {
 			e.printStackTrace();
 		}
-		
+
+        HttpClient httpClient = new HttpClient();
+
 		try {
-			MoraleScale.loadWords(stopwords, this.getClass().getResource("/stopwords.txt").openStream());
+            GetMethod get = new GetMethod("http://cloud.github.com/downloads/mmattozzi/sonofcim/stopwords.txt");
+            httpClient.executeMethod(get);
+			MoraleScale.loadWords(stopwords, get.getResponseBodyAsStream());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		try {
-			MoraleScale.loadWords(negativeWords, this.getClass().getResource("/negative_words.txt").openStream());
+            GetMethod get = new GetMethod("http://cloud.github.com/downloads/mmattozzi/sonofcim/negative_words.txt");
+            httpClient.executeMethod(get);
+			MoraleScale.loadWords(negativeWords, get.getResponseBodyAsStream());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -78,7 +90,11 @@ public class YahooAnswerer {
 				answer = queryAnswersAPI(getKeywords(question, 2));
 			}
 			
-			if (answer == null && forceAnswer) answer = "That's " + negativeWords.get(r.nextInt(negativeWords.size())) + ", " + sender;
+			if (answer == null && forceAnswer) {
+                //answer = "That's " + negativeWords.get(r.nextInt(negativeWords.size())) + ", " + sender;
+                answer = jdbcTemplate.queryForObject("select message from messages m join (select floor(max(id)*rand()) " +
+                        "as id from messages) as x on m.id >= x.id limit 1", String.class);
+            }
 			return answer;
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -16,18 +16,19 @@ public class IrcBot extends PircBot {
 	protected LunchChooser lunchChooser = new LunchChooser();
 	protected MovieQuoter movieQuoter = null;
 	protected MoraleScale moraleScale;
+    protected UserQuoter userQuoter;
 	
 	protected JdbcTemplate jdbcTemplate;
 	protected SimpleJdbcTemplate simpleJdbcTemplate;
 	
 	protected Pattern quoteRequest = Pattern.compile("!q (.*)");
 	protected Pattern linkPattern = Pattern.compile("(https?://\\S*)");
-	
+	protected Pattern userQuoteRequest = Pattern.compile("!do (.*)");
+
 	protected DeliciousLinkSaver deliciousLinkSaver = null;
 	
 	public IrcBot(Properties props) {
 		this.setName(props.getProperty("sonofcim.nick"));
-		yahooAnswerer = new YahooAnswerer(props.getProperty("sonofcim.yahoo.apikey"));
 		movieQuoter = new MovieQuoter(props.getProperty("sonofcim.yahoo.boss.apikey"));
 		helloPattern = Pattern.compile("^(.*\\s)*(hi|hello|hola|hey)(\\s.*)*$", Pattern.CASE_INSENSITIVE);
 		
@@ -36,17 +37,20 @@ public class IrcBot extends PircBot {
 		dataSource.setUsername(props.getProperty("sonofcim.db.user"));
 		dataSource.setPassword(props.getProperty("sonofcim.db.password"));
 		dataSource.setUrl(props.getProperty("sonofcim.db.url"));
-		
+
 		jdbcTemplate = new JdbcTemplate(dataSource);
 		simpleJdbcTemplate = new SimpleJdbcTemplate(jdbcTemplate);
 		moraleScale = new MoraleScale(jdbcTemplate);
-		
 		moraleScale.train(null);
-		
+
+        userQuoter = new UserQuoter(simpleJdbcTemplate);
+        
 		String deliciousUser = props.getProperty("sonofcim.delicious.user");
 		String deliciousPass = props.getProperty("sonofcim.delicious.password");
 		deliciousLinkSaver = new DeliciousLinkSaver(deliciousUser, deliciousPass);
-		
+
+        yahooAnswerer = new YahooAnswerer(props.getProperty("sonofcim.yahoo.apikey"), simpleJdbcTemplate);
+
 	}
 	
 	@Override
@@ -99,7 +103,22 @@ public class IrcBot extends PircBot {
 					}
 				}
 			}
-			
+
+            if (message.startsWith("!do")) {
+                Matcher m = userQuoteRequest.matcher(message);
+                if (m.matches()) {
+                    String user = m.group(1);
+                    if (user != null) {
+                        String msg = userQuoter.getQuote(user);
+                        if (msg != null) sendMessage(channel, msg);
+                    }
+                }
+            }
+
+            if (message.equals("!aevans")) {
+                sendMessage(channel, userQuoter.getQuote("aevans"));
+            }
+
 			if (message.equals("!morale")) {
 				sendMessage(channel, moraleScale.getMorale());
 			} else if (message.equals("!morale trend on")) {
