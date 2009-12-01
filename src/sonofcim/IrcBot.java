@@ -24,6 +24,7 @@ public class IrcBot extends PircBot {
 	protected Pattern quoteRequest = Pattern.compile("!q (.*)");
 	protected Pattern linkPattern = Pattern.compile("(https?://\\S*)");
 	protected Pattern userQuoteRequest = Pattern.compile("!do (.*)");
+    protected Pattern messageRequest = Pattern.compile("!msg (.*)");
 
 	protected DeliciousLinkSaver deliciousLinkSaver = null;
 	
@@ -110,6 +111,17 @@ public class IrcBot extends PircBot {
                     String user = m.group(1);
                     if (user != null) {
                         String msg = userQuoter.getQuote(user);
+                        if (msg != null) sendMessage(channel, msg);
+                    }
+                }
+            }
+
+            if (message.startsWith("!msg")) {
+                Matcher m = messageRequest.matcher(message);
+                if (m.matches()) {
+                    String user = m.group(1);
+                    if (user != null) {
+                        String msg = userQuoter.getMessage(user);
                         if (msg != null) sendMessage(channel, msg);
                     }
                 }
