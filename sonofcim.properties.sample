@@ -1,6 +1,6 @@
 # IRC Options
-sonofcim.channel=milhouse
-sonofcim.nick=sonofcim
+sonofcim.channel=
+sonofcim.nick=botname
 sonofcim.server=irc.freenode.net
 
 # Database Options
